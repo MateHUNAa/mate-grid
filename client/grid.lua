@@ -146,6 +146,11 @@ function Grid:GetCellAtWorldPos(worldPos)
 end
 
 function Grid:GetCellWorldPos(row, col)
+    if not row or not col then return nil end
+
+    if row < 0 or row > self.rows then return nil end
+    if col < 0 or col > self.cols then return nil end
+
     local cell = self.cells[row][col]
 
     if cell then
@@ -278,10 +283,10 @@ function Grid:UpdateHover(worldPos)
 
         self.lastHoveredRow = row
         self.lastHoveredCol = col
+    end
 
-        if self.onHover then
-            self.onHover(row, col)
-        end
+    if self.onHover then
+        self.onHover(row, col)
     end
 end
 
@@ -325,17 +330,18 @@ function Grid:update()
             end
         end
 
+
+        if IsControlJustPressed(2, 24) and self.hoverCell and not self.isHolding then
+            self:handleClick(self.hoverCell, 0)
+        end
+
+
         if IsControlJustReleased(2, 24) and self.isHolding and self.holdingCell then
             if self.onHoldCancelled then
                 self.onHoldCancelled(self.holdingCell)
             end
 
             self:resetHold()
-        end
-
-        -- Handle click stuff
-        if IsControlJustPressed(2, 24) and self.hoverCell then
-            self:handleClick(self.hoverCell, 0)
         end
 
         if IsControlJustReleased(2, 24) and self.holdingCell and not self.isHolding then
@@ -370,9 +376,23 @@ function Grid:handleClick(cell, button)
     end
 
     CreateThread(function(threadId)
-        Wait(80)
-        if self.onClick then
+        Wait(300)
+        if self.onClick and not self.isHolding then
             self.onClick(cell, button)
         end
     end)
+end
+
+function Grid:UpdateCell(cell, key, val, otherVal)
+    if not self.cells[cell.row][cell.col] then
+        print(("[^1Err^0]: No cell on %s:%s"):format(cell.row, cell.col))
+        return false
+    end
+    if otherVal then
+        self.cells[cell.row][cell.col][key] = self.cells[cell.row][cell.col][key] or {}
+        self.cells[cell.row][cell.col][key][val] = otherVal
+        return true
+    end
+    self.cells[cell.row][cell.col][key] = val
+    return true
 end

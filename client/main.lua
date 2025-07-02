@@ -10,7 +10,11 @@ Citizen.CreateThread((function()
 
      myGrid.onClick = function(cell, btn)
           if cell then
+               print(("onClick : %s:%s"):format(cell.row, cell.col))
                myGrid:setSquare(cell.row, cell.col, { 0, 0, 255, 150 }, true)
+               print(json.encode(myGrid.cells[cell.row][cell.col], {
+                    indent = true
+               }))
           end
      end
 
@@ -18,8 +22,17 @@ Citizen.CreateThread((function()
           print(("Hold completed on %s:%s"):format(cell.row, cell.col))
 
           myGrid:setSquare(cell.row, cell.col, { 100, 200, 100, 100 }, true)
+
+          myGrid:UpdateCell(cell, "test", true)
      end
 
+
+     myGrid.onHover = (function(row, col)
+          local cellPos = myGrid:GetCellWorldPos(row, col)
+          if cellPos then
+               -- mCore.Draw3DText(cellPos.x, cellPos.y, cellPos.z-0.1, "Custom: Hovering", 16, 99, 111, false, 4)
+          end
+     end)
 
      while true do
           Wait(0)
@@ -49,7 +62,7 @@ Citizen.CreateThread((function()
      end)
 
      myGrid.onHolding = (function(cell, progress)
-          print(("onHolding: %s:%s progress: %s"):format(cell.row,cell.col,progress))
+          print(("onHolding: %s:%s progress: %s"):format(cell.row, cell.col, progress))
      end)
 
      while true do
