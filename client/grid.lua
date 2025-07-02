@@ -226,8 +226,8 @@ function Grid:draw()
                 DrawSquare(squarePos, self.cellW, self.cellH, self.rotationDeg, color, fill)
 
                 if mCore.isDebug() then
-                    mCore.Draw3DText(squarePos.x, squarePos.y, squarePos.z, ("%s:%s"):format(row, col), 255, 255, 0,
-                        false, 4)
+                    -- mCore.Draw3DText(squarePos.x, squarePos.y, squarePos.z, ("%s:%s"):format(row, col), 255, 255, 0,
+                    --     false, 4)
                 end
 
                 -- Draw progress bar on held cell
