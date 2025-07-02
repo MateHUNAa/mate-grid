@@ -17,7 +17,7 @@ function GetGridAtWorldPos(worldPos)
                 col = col,
                 cell = grid.cells[row][col],
                 uid = ("grid_%d_%d_%d"):format(_, row, col),
-                clickable = true
+                clickable = grid.cells[row][col].clickable or false
             }
         end
     end
@@ -47,14 +47,24 @@ exports("IsHoldingCell", IsHoldingCell)
 ---@param color table|nil -- {r,g,b,a} or nil
 ---@param fill boolean -- true = filled, false = border
 function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
-    local self          = setmetatable({}, Grid)
+    local self = setmetatable({}, Grid)
+
+    -- if cellW < 0.5 or cellH < 0.5 then
+    --     print("[^3Warning^0]: cellW/H smaller than 0.5 the cursor is false detecting grid cells")
+    -- end
+
+
+    if not centerPos or type(centerPos) ~= "vector3" then
+        return print(("[^1Err^0]: `centerPos` Expected vector3 got '%s' invoke: '%s'"):format(type(centerPos),
+            GetInvokingResource()))
+    end
 
     self.centerPos      = centerPos
-    self.rows           = rows
-    self.cols           = cols
-    self.cellW          = cellW
-    self.cellH          = cellH
-    self.rotationDeg    = rotationDeg
+    self.rows           = rows or 5
+    self.cols           = cols or 5
+    self.cellW          = cellW or 0.5
+    self.cellH          = cellH or 0.5
+    self.rotationDeg    = rotationDeg or 0.0
     self.spaceing       = 0.1
     self.cells          = {}
 
@@ -81,6 +91,7 @@ function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
                 fill          = false,
                 originalColor = nil,
                 originalFill  = nil,
+                clickable     = true
             }
         end
     end
@@ -104,6 +115,7 @@ function Grid:setSquare(row, col, color, fill)
     end
 end
 
+-- FIXME: Detecting worng cell on different width/height cell sizes
 function Grid:GetCellAtWorldPos(worldPos)
     if (#(GetEntityCoords(cache.ped).xy - worldPos.xy) > Config.AimEntity.Distance) then
         return nil
@@ -118,6 +130,7 @@ function Grid:GetCellAtWorldPos(worldPos)
 
     local rx = dx * cosR - dy * sinR
     local ry = dx * sinR + dy * cosR
+
 
     local x = rx + totalW / 2
     local y = ry + totalH / 2
@@ -199,6 +212,11 @@ function Grid:draw()
                     fill = true
                 end
 
+                if isHovered and not self.cells[row][col].clickable then
+                    color = { 100, 100, 0, 160 }
+                    fill = true
+                end
+
                 if blinkActive then
                     color = { 0, 255, 0, 100 }
                     fill = true
@@ -210,8 +228,8 @@ function Grid:draw()
                 end
 
 
-                local dx = (col + 0.5) * (self.cellW + self.spaceing) - totalW / 2
-                local dy = (row + 0.5) * (self.cellH + self.spaceing) - totalH / 2
+                local dx = (col) * (self.cellW + self.spaceing) - totalW / 2
+                local dy = (row) * (self.cellH + self.spaceing) - totalH / 2
 
                 local ox, oy = rotate(dx, dy)
 
@@ -267,12 +285,12 @@ end
 function Grid:UpdateHover(worldPos)
     local row, col = self:GetCellAtWorldPos(worldPos)
 
-    if row and col then
-        local cellPos = self:GetCellWorldPos(row, col)
-        if mCore.isDebug() then
-            mCore.Draw3DText(cellPos.x, cellPos.y, cellPos.z + 0.3, "HOVER", 255, 0, 0, false, 4)
-        end
-    end
+    -- if mCore.isDebug() then
+    --     if row and col then
+    --         local cellPos = self:GetCellWorldPos(row, col)
+    --         mCore.Draw3DText(cellPos.x, cellPos.y, cellPos.z + 0.3, "HOVER", 255, 0, 0, false, 4)
+    --     end
+    -- end
 
     if row ~= self.lastHoveredRow or col ~= self.lastHoveredCol then
         self.hoverCell = nil
@@ -298,10 +316,7 @@ function Grid:resetHold()
 end
 
 function Grid:update()
-    local isMouseHeld = IsControlPressed(2, 24)
-
-
-    if AimController._aiming then
+    if AimController._aiming and AimController._inRange then
         local hit, cursorWorldPos, entityHit, to = screenToWorld(1, 0)
 
         -- UpdateHover
@@ -366,6 +381,10 @@ end
 
 function Grid:handleClick(cell, button)
     if not cell then return end
+
+    if not self.cells[cell.row][cell.col].clickable then
+        return
+    end
 
     self.blinkingCell = cell
     self.blinkEndTime = GetGameTimer() + 80

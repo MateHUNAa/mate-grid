@@ -18,18 +18,19 @@ Config.ApprovedLicenses = {
 
 
 Config.AimEntity = {
-     Enabled             = true,         -- Enable or disable the whole aimingEntity thing.
-     Distance            = 3,            -- Maximum distance to search for aimingEntity.
-     RefreshRateMS       = 100,          -- ShapeTest ticking MS
-     Key                 = 'm',          -- Default key to bind the cursor showing
-     CenterCursorOnOpen  = true,
-     EnableDrawLine      = false,        -- Enable drawline between hitcoord and playercoords.
-     EnableSprite        = false,        -- Enable the sprite rendering on the hitcoords.
-     SpriteDict          = 'mphud',      -- If EnableSprite enabled
-     SpriteName          = 'spectating', -- If EnableSprite enabled
-     CursorSpriteOnAim   = 1,            -- Cursor sprite when aimed on cell
-     CursorSpriteDefault = 2,            -- Cursor sprite default
-     CursorSpriteOnHold  = 4,            -- Cursor sprite when holding  cell
+     Enabled                 = true,     -- Enable or disable the whole aimingEntity thing.
+     Distance                = 3,        -- Maximum distance to search for aimingEntity.
+     RefreshRateMS           = 100,      -- ShapeTest ticking MS
+     Key                     = 'm',      -- Default key to bind the cursor showing
+     CenterCursorOnOpen      = true,
+     EnableDrawLine          = false,    -- Enable drawline between hitcoord and playercoords.
+     EnableSprite            = false,    -- Enable the sprite rendering on the hitcoords.
+     SpriteDict              = 'mphud',  -- If EnableSprite enabled
+     SpriteName              = 'spectating', -- If EnableSprite enabled
+     CursorSpriteOnAim       = 1,        -- Cursor sprite when aimed on cell
+     CursorSpriteOnClickable = 3,
+     CursorSpriteDefault     = 2,        -- Cursor sprite default
+     CursorSpriteOnHold      = 4,        -- Cursor sprite when holding  cell
 }
 
 Loc = {}

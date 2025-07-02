@@ -1,6 +1,7 @@
-AimController = {}
-AimController._aiming = false
+AimController            = {}
+AimController._aiming    = false
 AimController._aimedData = nil
+AimController._inRange   = true
 
 RegisterCommand("aiming", function(source, args, raw)
     AimController._aiming = not AimController._aiming
@@ -73,16 +74,24 @@ RegisterCommand("aiming", function(source, args, raw)
                 end
 
                 local found, hitcoords, entity = screenToWorld(1, 0)
+
                 if found >= 1 then
                     local dist = #(GetEntityCoords(PlayerPedId()) - hitcoords)
-
+                    AimController._inRange = Config.AimEntity.Distance > dist
                     if Config.AimEntity.Distance > dist then
                         local data = GetGridAtWorldPos(hitcoords)
                         if data and data.clickable then
-                            SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnAim)
+                            if data.clickable then
+                                SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnClickable)
+                            end
+
                             AimController._aimedData = data
                             AimController._aimedData.hitcoords = hitcoords
                             goto continue
+                        else
+                            if data then
+                                SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnAim)
+                            end
                         end
                     end
                 end

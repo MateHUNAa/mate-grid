@@ -4,14 +4,17 @@ mCore = exports["mCore"]:getSharedObj()
 lang  = Loc[Config.lan]
 
 Citizen.CreateThread((function()
-     local pos = vec4(2526.1523, -388.1937, 92.0928, 164.3590)
+     local pos = vec4(2526.1523, -388.1937, 91.999, 164.3590)
 
-     local myGrid = Grid:new(pos.xyz, 4, 4, 0.8, 0.8, pos.w)
+     local myGrid = Grid:new(pos.xyz, 5, 5, .5, .5, pos.w)
+
+     if not myGrid then
+          return
+     end
 
      myGrid.onClick = function(cell, btn)
           if cell then
                print(("onClick : %s:%s"):format(cell.row, cell.col))
-               myGrid:setSquare(cell.row, cell.col, { 0, 0, 255, 150 }, true)
                print(json.encode(myGrid.cells[cell.row][cell.col], {
                     indent = true
                }))

@@ -141,21 +141,21 @@ function degToRad(deg)
 end
 
 function screenToWorld(flags, ignore)
-    local x, y = GetNuiCursorPosition()
+    local x, y            = GetNuiCursorPosition()
 
-    local absoluteX = x
-    local absoluteY = y
+    local absoluteX       = x
+    local absoluteY       = y
 
-    local camPos = GetGameplayCamCoord()
+    local camPos          = GetGameplayCamCoord()
     local processedCoords = processCoordinates(absoluteX, absoluteY)
-    local target = s2w(camPos, processedCoords.x, processedCoords.y)
+    local target          = s2w(camPos, processedCoords.x, processedCoords.y)
 
-    local dir = subVector3(target, camPos)
-    local from = addVector3(camPos, mulNumber(dir, 0.05))
-    local to = addVector3(camPos, mulNumber(dir, 300))
+    local dir             = subVector3(target, camPos)
+    local from            = addVector3(camPos, mulNumber(dir, 0.05))
+    local to              = addVector3(camPos, mulNumber(dir, 300))
 
-    local ray = StartShapeTestRay(from.x, from.y, from.z, to.x, to.y, to.z, flags, ignore, 0)
-    local a, b, c, d, e = GetShapeTestResult(ray)
+    local ray             = StartShapeTestRay(from.x, from.y, from.z, to.x, to.y, to.z, flags, ignore, 0)
+    local a, b, c, d, e   = GetShapeTestResult(ray)
     return b, c, e, to
 end
 
