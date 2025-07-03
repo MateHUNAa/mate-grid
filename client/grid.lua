@@ -87,11 +87,13 @@ function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
         self.cells[row] = {}
         for col = 0, cols - 1 do
             self.cells[row][col] = {
-                color         = { 255, 255, 255, 255 },
+                color         = { 240, 240, 240, 255 },
+                lineColor     = { 240, 240, 240, 255 },
                 fill          = false,
                 originalColor = nil,
                 originalFill  = nil,
-                clickable     = true
+                clickable     = true,
+                metadata      = {}
             }
         end
     end
@@ -115,7 +117,6 @@ function Grid:setSquare(row, col, color, fill)
     end
 end
 
--- FIXME: Detecting worng cell on different width/height cell sizes
 function Grid:GetCellAtWorldPos(worldPos)
     if (#(GetEntityCoords(cache.ped).xy - worldPos.xy) > Config.AimEntity.Distance) then
         return nil
@@ -204,29 +205,31 @@ function Grid:draw()
                 local blinkActive = isBlinking and GetGameTimer() < self.blinkEndTime
 
                 local color       = cell.color
+                local lineColor   = cell.lineColor
                 local fill        = cell.fill
 
 
                 if isHovered then
-                    color = { 255, 200, 0, 160 }
-                    fill = true
+                    color = { 0, 200, 255, 180 }
+                    fill  = true
                 end
 
                 if isHovered and not self.cells[row][col].clickable then
-                    color = { 100, 100, 0, 160 }
-                    fill = true
+                    color = { 80, 120, 160, 160 }
+                    fill  = true
                 end
 
                 if blinkActive then
-                    color = { 0, 255, 0, 100 }
-                    fill = true
+                    color = { 80, 255, 0, 160 }
+                    fill  = true
                 end
 
                 if isHeld and self.isHolding then
-                    color = { 200, 0, 200, 100 }
-                    fill = true
+                    color = { 255, 0, 220, 160 }
+                    fill  = true
                 end
 
+                -- Special State { 255, 100, 50, 200 }
 
                 local dx = (col) * (self.cellW + self.spaceing) - totalW / 2
                 local dy = (row) * (self.cellH + self.spaceing) - totalH / 2
@@ -241,12 +244,7 @@ function Grid:draw()
 
                 cell.position = squarePos
 
-                DrawSquare(squarePos, self.cellW, self.cellH, self.rotationDeg, color, fill)
-
-                if mCore.isDebug() then
-                    -- mCore.Draw3DText(squarePos.x, squarePos.y, squarePos.z, ("%s:%s"):format(row, col), 255, 255, 0,
-                    --     false, 4)
-                end
+                DrawSquare(squarePos, self.cellW, self.cellH, self.rotationDeg, color, fill, lineColor)
 
                 -- Draw progress bar on held cell
                 if isHeld and self.holdProgress and self.holdProgress > 0 then
@@ -402,16 +400,31 @@ function Grid:handleClick(cell, button)
     end)
 end
 
-function Grid:UpdateCell(cell, key, val, otherVal)
+function Grid:WriteCell(cell, key, val, otherVal)
     if not self.cells[cell.row][cell.col] then
-        print(("[^1Err^0]: No cell on %s:%s"):format(cell.row, cell.col))
+        print(("[^1Err^0]:WriteCell No cell on %s:%s"):format(cell.row, cell.col))
         return false
     end
+
     if otherVal then
-        self.cells[cell.row][cell.col][key] = self.cells[cell.row][cell.col][key] or {}
-        self.cells[cell.row][cell.col][key][val] = otherVal
+        self.cells[cell.row][cell.col].metadata[key] = self.cells[cell.row][cell.col][key] or {}
+        self.cells[cell.row][cell.col].metadata[key][val] = otherVal
         return true
     end
-    self.cells[cell.row][cell.col][key] = val
+    self.cells[cell.row][cell.col].metadata[key] = val
     return true
+end
+
+function Grid:ReadCell(cell, key)
+    if not self.cells[cell.row][cell.col] then
+        print(("[^1Err^0]:ReadCell: No cell on %s:%s"):format(cell.row, cell.col))
+        return false
+    end
+
+    if not key then
+        return self.cells[cell.row][cell.col].metadata
+    end
+
+
+    return self.cells[cell.row][cell.col].metadata[key] or {}
 end

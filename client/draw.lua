@@ -7,7 +7,7 @@ function DrawTriangle(p1, p2, p3, r, g, b, a)
     )
 end
 
-function DrawSquare(centerPos, width, height, rotationDeg, color, fill)
+function DrawSquare(centerPos, width, height, rotationDeg, color, fill, lineColor)
     if not color then color = {} end
     local halfW, halfH = width / 2, height / 2
     local rotRad = math.rad(rotationDeg)
@@ -38,10 +38,14 @@ function DrawSquare(centerPos, width, height, rotationDeg, color, fill)
         DrawTriangle(p1, p2, p3, color[1] or 255, color[2] or 255, color[3] or 255, color[4] or 255)
         DrawTriangle(p1, p3, p4, color[1] or 255, color[2] or 255, color[3] or 255, color[4] or 255)
     end
-    DrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, 255, 255, 255, 255)
-    DrawLine(p2.x, p2.y, p2.z, p3.x, p3.y, p3.z, 255, 255, 255, 255)
-    DrawLine(p3.x, p3.y, p3.z, p4.x, p4.y, p4.z, 255, 255, 255, 255)
-    DrawLine(p4.x, p4.y, p4.z, p1.x, p1.y, p1.z, 255, 255, 255, 255)
+    DrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, lineColor[1] or 255, lineColor[2] or 255, lineColor[3] or 255,
+        lineColor[4] or 255)
+    DrawLine(p2.x, p2.y, p2.z, p3.x, p3.y, p3.z, lineColor[1] or 255, lineColor[2] or 255, lineColor[3] or 255,
+        lineColor[4] or 255)
+    DrawLine(p3.x, p3.y, p3.z, p4.x, p4.y, p4.z, lineColor[1] or 255, lineColor[2] or 255, lineColor[3] or 255,
+        lineColor[4] or 255)
+    DrawLine(p4.x, p4.y, p4.z, p1.x, p1.y, p1.z, lineColor[1] or 255, lineColor[2] or 255, lineColor[3] or 255,
+        lineColor[4] or 255)
 end
 
 --- Draws a simple horizontal progress bar in 3D space.

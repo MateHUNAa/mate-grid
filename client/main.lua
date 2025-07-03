@@ -15,9 +15,7 @@ Citizen.CreateThread((function()
      myGrid.onClick = function(cell, btn)
           if cell then
                print(("onClick : %s:%s"):format(cell.row, cell.col))
-               print(json.encode(myGrid.cells[cell.row][cell.col], {
-                    indent = true
-               }))
+               myGrid:ReadCell(cell)
           end
      end
 
@@ -26,7 +24,7 @@ Citizen.CreateThread((function()
 
           myGrid:setSquare(cell.row, cell.col, { 100, 200, 100, 100 }, true)
 
-          myGrid:UpdateCell(cell, "test", true)
+          myGrid:WriteCell(cell, "test", true)
      end
 
      myGrid.onHoldCancelled = (function(cell)
