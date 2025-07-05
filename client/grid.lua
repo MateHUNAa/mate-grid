@@ -1,22 +1,70 @@
+---@class Grid
+---@field centerPos vector3
+---@field id string
+---@field rows number
+---@field cols number
+---@field cellW number
+---@field cellH number
+---@field rotationDeg number
+---@field spaceing number
+---@field cells table<number, table<number, GridCell>>
+---@field hoveredCell GridCell|nil
+---@field lastHoveredRow number|nil
+---@field lastHoveredCol number|nil
+---@field onHover fun(row:number, col:number)|nil
+---@field onClick fun(cell:GridCell, button:number)|nil
+---@field onHoldComplete fun(cell:GridCell)|nil
+---@field onHolding fun(cell:GridCell, progress:number)|nil
+---@field onHoldCancelled fun(cell:GridCell)|nil
+---@field blinkingCell GridCell|nil
+---@field blinkEndTime number
+---@field holdDuration number
+---@field holdingCell GridCell|nil
+---@field isHolding boolean
+---@field holdStartTime number
+---@field holdProgress number|nil
 Grid         = {}
 Grid.__index = Grid
 
-local Grids  = {}
+---@class GridCell
+---@field color table
+---@field lineColor table
+---@field fill boolean
+---@field originalColor table|nil
+---@field originalFill boolean|nil
+---@field clickable boolean
+---@field metadata table
+---@field position vector3|nil
 
-exports("GetClass", function(...)
+
+local Grids = {}
+
+exports("GetGridById", function(id)
+    if not id then return end
+
+    for _, grid in ipairs(Grids) do
+        if grid.id == id then
+            return grid
+        end
+    end
+end)
+
+exports("GetClass", function()
     return Grid
 end)
 
+---@param worldPos vector3
+---@return table|nil
 function GetGridAtWorldPos(worldPos)
     for _, grid in ipairs(Grids) do
         local row, col = grid:GetCellAtWorldPos(worldPos)
         if row and col then
             return {
-                grid = grid,
-                row = row,
-                col = col,
-                cell = grid.cells[row][col],
-                uid = ("grid_%d_%d_%d"):format(_, row, col),
+                grid      = grid,
+                row       = row,
+                col       = col,
+                cell      = grid.cells[row][col],
+                uid       = grid.id,
                 clickable = grid.cells[row][col].clickable or false
             }
         end
@@ -27,6 +75,7 @@ end
 
 exports("GetGridAtWorldPos", GetGridAtWorldPos)
 
+---@return boolean
 function IsHoldingCell()
     for _, grid in ipairs(Grids) do
         if grid.isHolding then
@@ -38,14 +87,13 @@ end
 
 exports("IsHoldingCell", IsHoldingCell)
 
----@param centerPos vector3 -- center of grid
----@param rows number -- how many rows
----@param cols number -- how many cols
----@param cellW number -- width of each square
----@param cellH number -- height of each square
----@param rotationDeg number -- rotation of grid in deg
----@param color table|nil -- {r,g,b,a} or nil
----@param fill boolean -- true = filled, false = border
+---@param centerPos vector3
+---@param rows number
+---@param cols number
+---@param cellW number
+---@param cellH number
+---@param rotationDeg number
+---@return Grid|nil
 function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
     local self = setmetatable({}, Grid)
 
@@ -58,6 +106,8 @@ function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
         return print(("[^1Err^0]: `centerPos` Expected vector3 got '%s' invoke: '%s'"):format(type(centerPos),
             GetInvokingResource()))
     end
+
+    self.id             = ("mh_%s"):format(Shared.RandomID(12))
 
     self.centerPos      = centerPos
     self.rows           = rows or 5
@@ -106,8 +156,8 @@ end
 --- Set the color and fill of a specific square
 ---@param row number
 ---@param col number
----@param color table
----@param fill boolean
+---@param color table|nil
+---@param fill boolean|nil
 function Grid:setSquare(row, col, color, fill)
     if self.cells[row] and self.cells[row][col] then
         self.cells[row][col].color = color or self.cells[row][col].color
@@ -117,6 +167,8 @@ function Grid:setSquare(row, col, color, fill)
     end
 end
 
+---@param worldPos vector3
+---@return number|nil, number|nil
 function Grid:GetCellAtWorldPos(worldPos)
     if (#(GetEntityCoords(cache.ped).xy - worldPos.xy) > Config.AimEntity.Distance) then
         return nil
@@ -159,6 +211,9 @@ function Grid:GetCellAtWorldPos(worldPos)
     return row, col
 end
 
+---@param row number
+---@param col number
+---@return vector3|nil
 function Grid:GetCellWorldPos(row, col)
     if not row or not col then return nil end
 
@@ -280,6 +335,7 @@ function Grid:draw()
     end
 end
 
+---@param worldPos vector3
 function Grid:UpdateHover(worldPos)
     local row, col = self:GetCellAtWorldPos(worldPos)
 
@@ -377,6 +433,8 @@ function Grid:update()
     self:draw()
 end
 
+---@param cell {row: number, col: number}
+---@param button number
 function Grid:handleClick(cell, button)
     if not cell then return end
 
@@ -400,6 +458,11 @@ function Grid:handleClick(cell, button)
     end)
 end
 
+---@param cell {row: number, col: number}
+---@param key string
+---@param val any
+---@param otherVal any|nil
+---@return boolean
 function Grid:WriteCell(cell, key, val, otherVal)
     if not self.cells[cell.row][cell.col] then
         print(("[^1Err^0]:WriteCell No cell on %s:%s"):format(cell.row, cell.col))
@@ -415,6 +478,9 @@ function Grid:WriteCell(cell, key, val, otherVal)
     return true
 end
 
+---@param cell {row: number, col: number}
+---@param key string|nil
+---@return any
 function Grid:ReadCell(cell, key)
     if not self.cells[cell.row][cell.col] then
         print(("[^1Err^0]:ReadCell: No cell on %s:%s"):format(cell.row, cell.col))
