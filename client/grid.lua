@@ -12,10 +12,10 @@
 ---@field lastHoveredRow number|nil
 ---@field lastHoveredCol number|nil
 ---@field onHover fun(row:number, col:number)|nil
----@field onClick fun(cell:GridCell, button:number)|nil
----@field onHoldComplete fun(cell:GridCell)|nil
----@field onHolding fun(cell:GridCell, progress:number)|nil
----@field onHoldCancelled fun(cell:GridCell)|nil
+---@field onClick fun(cell:{row: number, col: number}, button:number)|nil
+---@field onHoldComplete fun(cell:{row: number, col: number})|nil
+---@field onHolding fun(cell:{row: number, col: number}, progress:number)|nil
+---@field onHoldCancelled fun(cell:{row: number, col: number})|nil
 ---@field blinkingCell GridCell|nil
 ---@field blinkEndTime number
 ---@field holdDuration number
@@ -47,10 +47,6 @@ exports("GetGridById", function(id)
             return grid
         end
     end
-end)
-
-exports("GetClass", function()
-    return Grid
 end)
 
 ---@param worldPos vector3
@@ -490,7 +486,6 @@ function Grid:ReadCell(cell, key)
     if not key then
         return self.cells[cell.row][cell.col].metadata
     end
-
 
     return self.cells[cell.row][cell.col].metadata[key] or {}
 end
