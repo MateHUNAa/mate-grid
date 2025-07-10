@@ -179,10 +179,6 @@ AddEventHandler("onResourceStop", function(res)
      end
 end)
 
-function ShouldShowGrid(factionId)
-     return true -- TODO: Check can show with Faction resource
-end
-
 local function render()
      isRendering = true
 
@@ -192,7 +188,7 @@ local function render()
                     props.gridObj:update()
                end
           end
-          Wait(0)
+          Wait(1)
      end
 
      isRendering = false
@@ -223,12 +219,6 @@ exports("getCurrentGrid", function()
      return nil
 end)
 
-
-local function hideGridPanel()
-     gridShowPanel = false
-end
-
-
 CreateThread((function()
      while true do
           local playerPos <const> = GetEntityCoords(cache.ped)
@@ -243,25 +233,12 @@ CreateThread((function()
 
 
                if dist < props.streamDistance then
-                    if props.inGrid then
-                         local where = props.helpWhere or function()
-                              return true
-                         end
-                         if where() then
-                              inGrid = true
-                              gridShowPanel = true
-                         end
-                    end
                     streamed[id] = props
                end
           end
 
           if next(streamed) and not isRendering then
                CreateThread(render)
-          end
-
-          if not inGrid then
-               hideGridPanel()
           end
 
           Wait(250)

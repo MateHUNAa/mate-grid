@@ -6,6 +6,8 @@ AimController._inRange   = true
 RegisterCommand("aiming", function(source, args, raw)
     AimController._aiming = not AimController._aiming
 
+    DisableIdleCamera(AimController._aiming)
+
     if not AimController._aiming then
         AimController._aimedData = nil
     end

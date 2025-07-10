@@ -19,7 +19,7 @@ Config.ApprovedLicenses = {
 
 Config.AimEntity = {
      Enabled                 = true,     -- Enable or disable the whole aimingEntity thing.
-     Distance                = 3,        -- Maximum distance to search for aimingEntity.
+     Distance                = 8,        -- Maximum distance to search for aimingEntity.
      RefreshRateMS           = 100,      -- ShapeTest ticking MS
      Key                     = 'm',      -- Default key to bind the cursor showing
      CenterCursorOnOpen      = true,
