@@ -29,7 +29,7 @@ Config.AimEntity = {
      SpriteName              = 'spectating', -- If EnableSprite enabled
      CursorSpriteOnAim       = 1,        -- Cursor sprite when aimed on cell
      CursorSpriteOnClickable = 3,
-     CursorSpriteDefault     = 2,        -- Cursor sprite default
+     CursorSpriteDefault     = 2,        -- Cursor sprite OUT OF RANGE
      CursorSpriteOnHold      = 4,        -- Cursor sprite when holding  cell
 }
 

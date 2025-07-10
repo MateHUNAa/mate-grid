@@ -11,17 +11,24 @@
 ---@field hoveredCell GridCell|nil
 ---@field lastHoveredRow number|nil
 ---@field lastHoveredCol number|nil
----@field onHover fun(row:number, col:number)|nil
+---@field onHover fun(cell:{row: number, col: number}, newHover: boolean)|nil
 ---@field onClick fun(cell:{row: number, col: number}, button:number)|nil
 ---@field onHoldComplete fun(cell:{row: number, col: number})|nil
 ---@field onHolding fun(cell:{row: number, col: number}, progress:number)|nil
 ---@field onHoldCancelled fun(cell:{row: number, col: number})|nil
+---@field customDraw fun(cell:{row: number, col: number}, ...)|nil
 ---@field blinkingCell GridCell|nil
 ---@field blinkEndTime number
 ---@field holdDuration number
 ---@field holdingCell GridCell|nil
+---@field checkAimDistance boolean
 ---@field isHolding boolean
 ---@field holdStartTime number
+---@field hoverColor table
+---@field clickColor table
+---@field blinkColor table
+---@field holdColor  table
+---@field forceColor table
 ---@field holdProgress number|nil
 Grid         = {}
 Grid.__index = Grid
@@ -103,31 +110,42 @@ function Grid:new(centerPos, rows, cols, cellW, cellH, rotationDeg)
             GetInvokingResource()))
     end
 
-    self.id             = ("mh_%s"):format(Shared.RandomID(12))
+    self.id               = ("mh_%s"):format(Shared.RandomID(12))
 
-    self.centerPos      = centerPos
-    self.rows           = rows or 5
-    self.cols           = cols or 5
-    self.cellW          = cellW or 0.5
-    self.cellH          = cellH or 0.5
-    self.rotationDeg    = rotationDeg or 0.0
-    self.spaceing       = 0.1
-    self.cells          = {}
+    self.centerPos        = centerPos
+    self.rows             = rows or 5
+    self.cols             = cols or 5
+    self.cellW            = cellW or 0.5
+    self.cellH            = cellH or 0.5
+    self.rotationDeg      = rotationDeg or 0.0
+    self.spaceing         = 0.1
+    self.cells            = {}
 
-    self.hoveredCell    = nil
-    self.lastHoveredRow = nil
-    self.lastHoveredCol = nil
+    self.hoveredCell      = nil
+    self.lastHoveredRow   = nil
+    self.lastHoveredCol   = nil
 
-    self.onHover        = nil
-    self.onClick        = nil
+    self.onHover          = nil
+    self.onClick          = nil
 
-    self.blinkingCell   = nil
-    self.blinkEndTime   = 0
+    self.customDraw       = nil
 
-    self.holdDuration   = 3000
-    self.holdingCell    = nil
-    self.isHolding      = false
-    self.holdStartTime  = 0
+    self.blinkingCell     = nil
+    self.blinkEndTime     = 0
+
+    self.holdDuration     = 3000
+    self.holdingCell      = nil
+    self.isHolding        = false
+    self.holdStartTime    = 0
+    self.checkAimDistance = true
+
+
+    -- Colors
+    self.hoverColor = { 0, 200, 255, 180 }
+    self.clickColor = { 80, 120, 160, 160 }
+    self.blinkColor = { 80, 255, 0, 160 }
+    self.holdColor  = { 255, 0, 220, 160 }
+    self.forceColor = nil
 
     for row = 0, rows - 1 do
         self.cells[row] = {}
@@ -261,23 +279,27 @@ function Grid:draw()
 
 
                 if isHovered then
-                    color = { 0, 200, 255, 180 }
+                    color = self.hoverColor
                     fill  = true
                 end
 
                 if isHovered and not self.cells[row][col].clickable then
-                    color = { 80, 120, 160, 160 }
+                    color = self.clickColor
                     fill  = true
                 end
 
                 if blinkActive then
-                    color = { 80, 255, 0, 160 }
+                    color = self.blinkColor
                     fill  = true
                 end
 
                 if isHeld and self.isHolding then
-                    color = { 255, 0, 220, 160 }
+                    color = self.holdColor
                     fill  = true
+                end
+
+                if self.forceColor then
+                    color = self.forceColor
                 end
 
                 -- Special State { 255, 100, 50, 200 }
@@ -294,6 +316,10 @@ function Grid:draw()
                 )
 
                 cell.position = squarePos
+
+                if self.customDraw then
+                    self.customDraw({ row = row, col = col, position = squarePos })
+                end
 
                 DrawSquare(squarePos, self.cellW, self.cellH, self.rotationDeg, color, fill, lineColor)
 
@@ -342,7 +368,11 @@ function Grid:UpdateHover(worldPos)
     --     end
     -- end
 
-    if row ~= self.lastHoveredRow or col ~= self.lastHoveredCol then
+    local isNewHover = (row ~= self.lastHoveredRow or col ~= self.lastHoveredCol)
+
+
+
+    if isNewHover then
         self.hoverCell = nil
 
         if row and col then
@@ -354,7 +384,7 @@ function Grid:UpdateHover(worldPos)
     end
 
     if self.onHover then
-        self.onHover(row, col)
+        self.onHover(self.hoverCell, isNewHover)
     end
 end
 
@@ -366,7 +396,7 @@ function Grid:resetHold()
 end
 
 function Grid:update()
-    if AimController._aiming and AimController._inRange then
+    if AimController._aiming then
         local hit, cursorWorldPos, entityHit, to = screenToWorld(1, 0)
 
         -- UpdateHover
@@ -478,6 +508,11 @@ end
 ---@param key string|nil
 ---@return any
 function Grid:ReadCell(cell, key)
+    if not cell then
+        print(("[^1Err^0]:ReadCell: No cell givven"))
+
+        return
+    end
     if not self.cells[cell.row][cell.col] then
         print(("[^1Err^0]:ReadCell: No cell on %s:%s"):format(cell.row, cell.col))
         return false

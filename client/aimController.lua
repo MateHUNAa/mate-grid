@@ -64,46 +64,45 @@ RegisterCommand("aiming", function(source, args, raw)
         end))
 
 
-        Citizen.CreateThread((function()
+        Citizen.CreateThread(function()
             while AimController._aiming do
                 Wait(Config.AimEntity.RefreshRateMS)
 
+                -- Prioritize holding cell
                 if IsHoldingCell() then
                     SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnHold)
-                    goto continue
-                end
+                else
+                    local found, hitcoords, entity = screenToWorld(1, 0)
 
-                local found, hitcoords, entity = screenToWorld(1, 0)
+                    if found >= 1 then
+                        local playerPos = GetEntityCoords(PlayerPedId())
+                        local dist = #(playerPos - hitcoords)
 
-                if found >= 1 then
-                    local dist = #(GetEntityCoords(PlayerPedId()) - hitcoords)
-                    AimController._inRange = Config.AimEntity.Distance > dist
-                    if Config.AimEntity.Distance > dist then
-                        local data = GetGridAtWorldPos(hitcoords)
-                        if data and data.clickable then
-                            if data.clickable then
-                                SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnClickable)
-                            end
+                        AimController._inRange = (Config.AimEntity.Distance > dist)
 
-                            AimController._aimedData = data
-                            AimController._aimedData.hitcoords = hitcoords
-                            goto continue
-                        else
+                        if AimController._inRange then
+                            local data = GetGridAtWorldPos(hitcoords)
+
                             if data then
-                                SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnAim)
+                                if data.clickable then
+                                    SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnClickable)
+                                    AimController._aimedData = data
+                                    AimController._aimedData.hitcoords = hitcoords
+                                else
+                                    SetMouseCursorSprite(Config.AimEntity.CursorSpriteOnAim)
+                                end
                             end
                         end
                     end
-                end
 
-                if AimController._aimedData ~= nil then
-                    AimController._aimedData = nil
-                    SetMouseCursorSprite(Config.AimEntity.CursorSpriteDefault)
+                    -- If no target or out of range, reset aimed data and cursor
+                    if not AimController._inRange or not found or (AimController._aimedData and not found) then
+                        AimController._aimedData = nil
+                        SetMouseCursorSprite(Config.AimEntity.CursorSpriteDefault)
+                    end
                 end
-
-                ::continue::
             end
-        end))
+        end)
     end
 end)
 RegisterKeyMapping('aiming', 'Enable Entity Cursor', 'keyboard', Config.AimEntity.Key)

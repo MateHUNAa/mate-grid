@@ -12,12 +12,13 @@ local gridShowPanel = false
 local resourceName  = GetCurrentResourceName()
 
 DEFAULT_GRID        = {
-     streamDistance = 15,
-     width          = 0.5,
-     height         = 0.5,
-     rows           = 5,
-     cols           = 5,
-     rotationDeg    = 0.0
+     streamDistance   = 15,
+     width            = 0.5,
+     height           = 0.5,
+     rows             = 5,
+     cols             = 5,
+     rotationDeg      = 0.0,
+     checkAimDistance = true,
 }
 
 function AddGrid(props)
@@ -43,27 +44,46 @@ function AddGrid(props)
 
      local gridObj = Grid:new(props.pos, props.rows, props.cols, props.width, props.height, props.rotationDeg)
 
+     -- Set grid base values
+
+     if props.checkAimDistance then
+          gridObj.checkAimDistance = props.checkAimDistance
+     end
+
+     -- Grid Functions
      if props.onClick then
-          gridObj.onClick = function(cell, button)
-               props.onClick(cell, button)
+          gridObj.onClick = function(...)
+               props.onClick(...)
           end
      end
 
      if props.onHolding then
-          gridObj.onHolding = function(cell, progress)
-               props.onHolding(cell, progress)
+          gridObj.onHolding = function(...)
+               props.onHolding(...)
           end
      end
 
      if props.onHoldCancelled then
-          gridObj.onHoldCancelled = function(cell)
-               props.onHoldCancelled(cell)
+          gridObj.onHoldCancelled = function(...)
+               props.onHoldCancelled(...)
           end
      end
 
      if props.onHoldComplete then
-          gridObj.onHoldComplete = function(cell)
-               props.onHoldComplete(cell)
+          gridObj.onHoldComplete = function(...)
+               props.onHoldComplete(...)
+          end
+     end
+
+     if props.onHover then
+          gridObj.onHover = function(...)
+               props.onHover(...)
+          end
+     end
+
+     if props.customDraw then
+          gridObj.customDraw = function(...)
+               props.customDraw(...)
           end
      end
 
@@ -84,14 +104,32 @@ end
 exports("RemoveGrid", RemoveGrid)
 
 
-function UpdateGridData(id, key, val, otherVal)
+function UpdateGridData(id, key, val)
      local invoker <const> = GetInvokingResource() or resourceName
      local id = invoker .. id
 
-     if grids[id] then
-          grids[id][key] = val
-     end
+     if not grids[id] then return false end
+
+     if not grids[id].gridObj then return false end
+
+     local oldVal = grids[id].gridObj[key] or nil
+     grids[id].gridObj[key] = val
+
+     return oldVal, val, key
 end
+
+function ReadGridData(id, key)
+     local invoker <const> = GetInvokingResource() or resourceName
+     local id = invoker .. id
+
+     if not grids[id] then return false end
+
+     if not grids[id].gridObj then return false end
+
+     return grids[id].gridObj[key]
+end
+
+exports("ReadGridData", ReadGridData)
 
 function ReadCell(id, cell, key)
      if not id or not cell then return false end
@@ -119,6 +157,14 @@ function WriteCell(id, cell, key, val, otherVal)
      return grids[id].gridObj:WriteCell(cell, key, val, otherVal)
 end
 
+exports("WriteCell2", function(id, cell, table)
+     for key, val in pairs(table) do
+          WriteCell(id, cell, key, val)
+     end
+     print(("^1Successfully wrote %s at %s:%s with datas:^0\n"):format(id, cell.row, cell.col, table),
+          json.encode(table, { indent = true }))
+end)
+
 exports("ReadCell", ReadCell)
 exports("WriteCell", WriteCell)
 
@@ -127,6 +173,7 @@ exports("UpdateGridData", UpdateGridData)
 AddEventHandler("onResourceStop", function(res)
      for id, props in pairs(grids) do
           if (props.invoker or "") == res then
+               grids[id].gridObj.customDraw = nil
                grids[id] = nil
           end
      end
@@ -150,6 +197,18 @@ local function render()
 
      isRendering = false
 end
+
+exports("SetSquare", function(id, cell, color, fill)
+     if not id or not cell then return false end
+
+     local invoker <const> = GetInvokingResource() or resourceName
+     local id = invoker .. id
+
+     if not grids[id] then return false end
+     if not grids[id].gridObj then return false end
+
+     grids[id].gridObj:setSquare(cell.row, cell.col, color, fill)
+end)
 
 exports("getCurrentGrid", function()
      for id, props in pairs(streamed) do
