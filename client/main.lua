@@ -1,6 +1,4 @@
-ESX   = exports['es_extended']:getSharedObject()
-mCore = exports["mCore"]:getSharedObj()
-
+local Config = require("shared.config")
 lang  = Loc[Config.lan]
 
 

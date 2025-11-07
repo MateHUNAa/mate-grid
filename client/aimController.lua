@@ -2,7 +2,7 @@ AimController            = {}
 AimController._aiming    = false
 AimController._aimedData = nil
 AimController._inRange   = true
-
+local Config = require("shared.config")
 RegisterCommand("aiming", function(source, args, raw)
     AimController._aiming = not AimController._aiming
 

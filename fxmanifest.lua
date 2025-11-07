@@ -7,18 +7,11 @@ author 'MateHUN [mhScripts]'
 description 'Template used mCore'
 version '1.0.0'
 
-
 shared_scripts {
     "shared/**.*"
 }
 
-server_scripts {
-    "server/functions.lua",
-    "server/main.lua",
-}
-
 client_scripts {
-    "client/functions.lua",
     "client/utils.lua",
     "client/draw.lua",
     "client/grid.lua",
@@ -31,7 +24,6 @@ shared_script '@es_extended/imports.lua'
 shared_script '@ox_lib/init.lua'
 
 dependency {
-    'mCore',
     'oxmysql',
     'ox_lib'
 }
@@ -43,7 +35,8 @@ escrow_ignore {
 }
 
 files {
-    "html/index.html"
+    "init.lua",
+    "html/index.html",
 }
 
 ui_page "html/index.html"

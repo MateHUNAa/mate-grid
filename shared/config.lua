@@ -1,4 +1,4 @@
-Config = {
+local Config = {
      lan = "en",
      PedRenderDistance = 80.0,
      target = true,
@@ -34,3 +34,5 @@ Config.AimEntity = {
 }
 
 Loc = {}
+
+return Config

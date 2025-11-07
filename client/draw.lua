@@ -48,6 +48,8 @@ function DrawSquare(centerPos, width, height, rotationDeg, color, fill, lineColo
         lineColor[4] or 255)
 end
 
+exports("DrawSquare", DrawSquare)
+
 --- Draws a simple horizontal progress bar in 3D space.
 -- @param x, y, z  Center position of the bar.
 -- @param width    Total bar width.
